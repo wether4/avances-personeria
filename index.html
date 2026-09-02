@@ -377,7 +377,10 @@
       <button data-filter="En ejecución">En ejecución</button>
       <button data-filter="Completada">Completada</button>
     </div>
-    <button class="new-btn" id="open-new">+ Nueva propuesta</button>
+    <div style="display:flex;gap:0.6rem;">
+      <button class="new-btn" id="clear-all" style="background:transparent;border:1px solid var(--seal);color:var(--seal);">Vaciar todo</button>
+      <button class="new-btn" id="open-new">+ Nueva propuesta</button>
+    </div>
   </div>
 
   <div id="list"></div>
@@ -455,39 +458,26 @@ const STAGE_PCT = {
 
 async function loadData(){
   try{
-    const res = await window.storage.get(STORAGE_KEY, true);
-    proposals = res && res.value ? JSON.parse(res.value) : seedData();
+    const raw = localStorage.getItem(STORAGE_KEY);
+    proposals = raw ? JSON.parse(raw) : seedData();
   }catch(e){
     proposals = seedData();
-    await persist();
   }
+  await persist();
   render();
 }
 
 async function persist(){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(proposals), true);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(proposals));
   }catch(e){
     console.error('No se pudo guardar', e);
+    alert('No se pudo guardar el cambio en este navegador. Verifica que no estés en modo incógnito o con el almacenamiento bloqueado.');
   }
 }
 
 function seedData(){
-  return [
-    {
-      id: uid(),
-      title: 'Mini Modelo de Naciones Unidas (Mini MUN)',
-      desc: 'Simulacro de debate diplomático entre cursos, para practicar argumentación y trabajo en equipo sobre temas globales.',
-      cat: 'Académico',
-      responsibles: 'Sara Gómez — coordinadora, Luis Peña — logística',
-      stage: 'En estudio',
-      pct: 30,
-      next: 'Definir comités y conseguir el aval de coordinación académica',
-      dueDate: '',
-      filed: todayISO(),
-      log: [ { date: todayISO(), text: 'Se presentó la propuesta ante el consejo estudiantil.' } ]
-    }
-  ];
+  return [];
 }
 
 function computeStats(){
@@ -662,6 +652,14 @@ document.getElementById('open-new').addEventListener('click', ()=>{
   modal.showModal();
 });
 document.getElementById('cancel-new').addEventListener('click', ()=> modal.close());
+
+document.getElementById('clear-all').addEventListener('click', async ()=>{
+  if(proposals.length===0) return;
+  if(!confirm('¿Vaciar todas las propuestas? Esta acción no se puede deshacer.')) return;
+  proposals = [];
+  await persist();
+  render();
+});
 
 document.getElementById('save-new').addEventListener('click', async ()=>{
   const title = document.getElementById('f-title').value.trim();
