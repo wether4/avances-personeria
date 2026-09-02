@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -222,50 +223,29 @@
 
 <script>
 /* ============================================================
-   EDITA TUS PROPUESTAS AQUÍ ABAJO. No hay formularios ni base
-   de datos: todo lo que ve la gente sale de este arreglo.
-   Para actualizar el avance, cambia los valores de "stage" y
-   "pct" (y agrega una línea en "log" si quieres dejar constancia).
-
-   Campos de cada propuesta:
-   - title       : nombre de la propuesta
-   - desc        : descripción breve
-   - cat         : categoría (texto libre, ej. "Académico")
-   - responsibles: encargados, ej. "Sara Gómez — coordinadora"
-   - stage       : una de estas 5 opciones exactas:
-                   "Radicada" | "En estudio" | "Aprobada" |
-                   "En ejecución" | "Completada"
-   - pct         : número de 0 a 100 (el avance real)
-   - next        : próximo paso a dar
-   - filed       : fecha de radicación, formato "YYYY-MM-DD"
-   - dueDate     : fecha estimada de cumplimiento, "YYYY-MM-DD"
-                   (déjalo como "" si no hay fecha aún)
-   - log         : lista de observaciones, cada una con
-                   { date: "YYYY-MM-DD", text: "..." }
-                   Agrega una línea nueva cada vez que haya
-                   una novedad; no borres las anteriores.
-
-   Para agregar una propuesta nueva, copia un bloque { ... }
-   completo dentro de los corchetes [ ] y cambia sus valores.
-   Para eliminar una, borra su bloque { ... } completo.
+   PROPUESTAS DE LA PERSONERÍA
 ============================================================ */
 
 const proposals = [
-  // Ejemplo — bórralo o edítalo con tu propia propuesta real:
-  // {
-  //   title: "Nombre de la propuesta",
-  //   desc: "Qué es y qué problema resuelve.",
-  //   cat: "Académico",
-  //   responsibles: "Nombre — rol, Nombre — rol",
-  //   stage: "En estudio",
-  //   pct: 30,
-  //   next: "Qué falta para avanzar a la siguiente etapa.",
-  //   filed: "2026-09-01",
-  //   dueDate: "2026-11-15",
-  //   log: [
-  //     { date: "2026-09-01", text: "Se presentó la propuesta ante el consejo estudiantil." }
-  //   ]
-  // },
+
+  {
+    title: "Implementos deportivos",
+    desc: "Adquisición de implementos deportivos para mejorar los recursos disponibles para los estudiantes y las actividades deportivas.",
+    cat: "Implementos",
+    responsibles: "José Ángel — Contralor",
+    stage: "En estudio",
+    pct: 20,
+    next: "Buscar cómo obtener los recursos y solicitar los permisos necesarios.",
+    filed: "2026-09-02",
+    dueDate: "",
+    log: [
+      { 
+        date: "2026-09-02", 
+        text: "Se está revisando la propuesta con los profesores." 
+      }
+    ]
+  }
+
 ];
 
 /* ============================================================
@@ -278,16 +258,36 @@ let openIndex = null;
 function fmtDate(iso){
   if(!iso) return 'Sin fecha';
   const d = new Date(iso + 'T00:00:00');
-  return d.toLocaleDateString('es-CO', {day:'numeric', month:'short', year:'numeric'});
+  return d.toLocaleDateString('es-CO', {
+    day:'numeric',
+    month:'short',
+    year:'numeric'
+  });
 }
+
 function escapeHtml(str){
-  return (str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  return (str||'').replace(
+    /[&<>"']/g,
+    m => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    }[m])
+  );
 }
 
 function computeStats(){
   const total = proposals.length;
-  const avg = total ? Math.round(proposals.reduce((s,p)=>s+p.pct,0)/total) : 0;
-  const done = proposals.filter(p=>p.stage==='Completada').length;
+  const avg = total
+    ? Math.round(proposals.reduce((s,p)=>s+p.pct,0)/total)
+    : 0;
+
+  const done = proposals.filter(
+    p=>p.stage==='Completada'
+  ).length;
+
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-progreso').textContent = avg + '%';
   document.getElementById('stat-completas').textContent = done;
@@ -295,67 +295,182 @@ function computeStats(){
 
 function render(){
   computeStats();
+
   const list = document.getElementById('list');
+
   const items = proposals
     .map((p,i)=>({...p, _idx:i}))
-    .filter(p=> currentFilter==='Todas' || p.stage===currentFilter);
+    .filter(
+      p=> currentFilter==='Todas' || p.stage===currentFilter
+    );
 
   if(items.length===0){
-    list.innerHTML = '<div class="empty">No hay propuestas registradas todavía.</div>';
+    list.innerHTML =
+      '<div class="empty">No hay propuestas registradas todavía.</div>';
     return;
   }
 
   list.innerHTML = items.map(p=>`
     <div class="entry" data-stage="${p.stage}">
+
       <div class="entry-head" data-toggle="${p._idx}">
+
         <div class="title-block">
-          <h3 class="entry-title">${escapeHtml(p.title)}</h3>
+
+          <h3 class="entry-title">
+            ${escapeHtml(p.title)}
+          </h3>
+
           <div class="entry-meta">
-            <span class="cat">${escapeHtml(p.cat)}</span>
+            <span class="cat">
+              ${escapeHtml(p.cat)}
+            </span>
+
             <span>·</span>
-            <span>${escapeHtml(p.responsibles || 'Sin encargados asignados')}</span>
+
+            <span>
+              ${escapeHtml(
+                p.responsibles ||
+                'Sin encargados asignados'
+              )}
+            </span>
           </div>
+
         </div>
-        <span class="stage-pill">${p.stage}</span>
+
+        <span class="stage-pill">
+          ${p.stage}
+        </span>
+
       </div>
+
       <div class="progress-row">
-        <div class="bar"><div style="width:${p.pct}%"></div></div>
-        <span class="pct">${p.pct}%</span>
-      </div>
-      <div class="details ${openIndex===p._idx ? 'open':''}">
-        <p>${escapeHtml(p.desc || 'Sin descripción todavía.')}</p>
-        <div class="field-grid">
-          <div class="f"><label>Radicada</label><div>${fmtDate(p.filed)}</div></div>
-          <div class="f"><label>Meta de cumplimiento</label><div>${fmtDate(p.dueDate)}</div></div>
-          <div class="f"><label>Próximo paso</label><div>${escapeHtml(p.next || 'Por definir')}</div></div>
+
+        <div class="bar">
+          <div style="width:${p.pct}%"></div>
         </div>
-        <div class="log-title">Bitácora de observaciones</div>
-        <ul class="log">
-          ${(p.log||[]).slice().reverse().map(l=>`<li><span class="date">${fmtDate(l.date)}</span>${escapeHtml(l.text)}</li>`).join('') || '<li>Sin observaciones aún.</li>'}
-        </ul>
+
+        <span class="pct">
+          ${p.pct}%
+        </span>
+
       </div>
+
+      <div class="details ${openIndex===p._idx ? 'open':''}">
+
+        <p>
+          ${escapeHtml(
+            p.desc ||
+            'Sin descripción todavía.'
+          )}
+        </p>
+
+        <div class="field-grid">
+
+          <div class="f">
+            <label>Radicada</label>
+            <div>
+              ${fmtDate(p.filed)}
+            </div>
+          </div>
+
+          <div class="f">
+            <label>Meta de cumplimiento</label>
+            <div>
+              ${fmtDate(p.dueDate)}
+            </div>
+          </div>
+
+          <div class="f">
+            <label>Próximo paso</label>
+            <div>
+              ${escapeHtml(
+                p.next ||
+                'Por definir'
+              )}
+            </div>
+          </div>
+
+        </div>
+
+        <div class="log-title">
+          Bitácora de observaciones
+        </div>
+
+        <ul class="log">
+
+          ${(p.log||[])
+            .slice()
+            .reverse()
+            .map(l=>`
+              <li>
+                <span class="date">
+                  ${fmtDate(l.date)}
+                </span>
+                ${escapeHtml(l.text)}
+              </li>
+            `)
+            .join('')
+
+            ||
+
+            '<li>Sin observaciones aún.</li>'
+          }
+
+        </ul>
+
+      </div>
+
     </div>
   `).join('');
 
-  document.querySelectorAll('[data-toggle]').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      const i = parseInt(el.getAttribute('data-toggle'),10);
-      openIndex = openIndex === i ? null : i;
-      render();
+  document
+    .querySelectorAll('[data-toggle]')
+    .forEach(el=>{
+
+      el.addEventListener('click', ()=>{
+
+        const i = parseInt(
+          el.getAttribute('data-toggle'),
+          10
+        );
+
+        openIndex =
+          openIndex === i
+            ? null
+            : i;
+
+        render();
+
+      });
+
     });
-  });
 }
 
-document.getElementById('filters').addEventListener('click', (e)=>{
-  const btn = e.target.closest('button');
-  if(!btn) return;
-  currentFilter = btn.getAttribute('data-filter');
-  document.querySelectorAll('#filters button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  render();
-});
+document
+  .getElementById('filters')
+  .addEventListener('click', (e)=>{
+
+    const btn = e.target.closest('button');
+
+    if(!btn) return;
+
+    currentFilter =
+      btn.getAttribute('data-filter');
+
+    document
+      .querySelectorAll('#filters button')
+      .forEach(b=>b.classList.remove('active'));
+
+    btn.classList.add('active');
+
+    render();
+
+  });
 
 render();
+
 </script>
 </body>
 </html>
+```
